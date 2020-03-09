@@ -11,6 +11,7 @@ import (
 	bn256 "github.com/ethereum/go-ethereum/crypto/bn256/cloudflare"
 )
 
+// Vk is the Verification Key data structure
 type Vk struct {
 	Alpha    *bn256.G1
 	Beta     *bn256.G2
@@ -19,6 +20,7 @@ type Vk struct {
 	GammaABC []*bn256.G1
 }
 
+// VkRaw is the Verification Key data structure in string format (from json)
 type VkRaw struct {
 	Alpha    []string   `json:"alpha_g1"`
 	Beta     [][]string `json:"beta_g2"`
@@ -27,12 +29,14 @@ type VkRaw struct {
 	GammaABC [][]string `json:"ic"`
 }
 
+// Proof is the Groth16 Proof data structure
 type Proof struct {
 	A *bn256.G1
 	B *bn256.G2
 	C *bn256.G1
 }
 
+// ProofRaw is the Groth16 Proof data structure in string format (from json)
 type ProofRaw struct {
 	A      []string   `json:"a"`
 	B      [][]string `json:"b"`
