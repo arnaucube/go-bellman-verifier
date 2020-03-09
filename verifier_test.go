@@ -60,3 +60,61 @@ func TestParseProof(t *testing.T) {
 	assert.Equal(t, "bn256.G2((2275d97dce5445433ec7bc6d01c35f0afad9afcf6f3350cd15eeef1023242c01, 0b5f21c2d981916cd5e1037b446b170b6c60dd184fdbb3381b7d0880fb48300d), (2c2a08a60032f536afbcb21c079b563cdce68b7ef906e973c52f574121a95df0, 1690100372c53776b60c0ee56926debb4d0acee90f7952ecc63861e0269a098a))", vk.Beta.String())
 	assert.Equal(t, "bn256.G2((15c9b1123841897787badbe858eb00943fc8a99454666f21acf4e79e13547471, 2d0c4fa1239184802aeda1f206e49104940aa3eccc1b3e0141c25b2dba8e7caf), (2bc9bc381cf68badd992338c637b36b54936b69cb8560eaf5a8cbe2c20ff8522, 256ad09ecb0abc15fd48f20c37d28ffcf0f8eb3b23cb10cdeee7365b598963ac))", vk.Gamma.String())
 }
+
+func TestVerify0(t *testing.T) {
+	proofJson, err := ioutil.ReadFile("testdata/proof0.json")
+	require.Nil(t, err)
+	vkJson, err := ioutil.ReadFile("testdata/vk0.json")
+	require.Nil(t, err)
+	publicJson, err := ioutil.ReadFile("testdata/public0.json")
+	require.Nil(t, err)
+
+	public, err := ParsePublicRaw(publicJson)
+	require.Nil(t, err)
+	proof, err := ParseProofRaw(proofJson)
+	require.Nil(t, err)
+	vk, err := ParseVkRaw(vkJson)
+	require.Nil(t, err)
+
+	v := Verify(vk, proof, public)
+	assert.True(t, v)
+}
+
+func TestVerify1(t *testing.T) {
+	proofJson, err := ioutil.ReadFile("testdata/proof1.json")
+	require.Nil(t, err)
+	vkJson, err := ioutil.ReadFile("testdata/vk1.json")
+	require.Nil(t, err)
+	publicJson, err := ioutil.ReadFile("testdata/public1.json")
+	require.Nil(t, err)
+
+	public, err := ParsePublicRaw(publicJson)
+	require.Nil(t, err)
+	proof, err := ParseProofRaw(proofJson)
+	require.Nil(t, err)
+	vk, err := ParseVkRaw(vkJson)
+	require.Nil(t, err)
+
+	v := Verify(vk, proof, public)
+	assert.True(t, v)
+}
+
+func BenchmarkVerify(b *testing.B) {
+	proofJson, err := ioutil.ReadFile("testdata/proof0.json")
+	require.Nil(b, err)
+	vkJson, err := ioutil.ReadFile("testdata/vk0.json")
+	require.Nil(b, err)
+	publicJson, err := ioutil.ReadFile("testdata/public0.json")
+	require.Nil(b, err)
+
+	public, err := ParsePublicRaw(publicJson)
+	require.Nil(b, err)
+	proof, err := ParseProofRaw(proofJson)
+	require.Nil(b, err)
+	vk, err := ParseVkRaw(vkJson)
+	require.Nil(b, err)
+
+	for i := 0; i < b.N; i++ {
+		Verify(vk, proof, public)
+	}
+}

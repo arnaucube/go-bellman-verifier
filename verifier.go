@@ -102,7 +102,8 @@ func stringToBigInt(s string) *big.Int {
 	return n
 }
 
-func parsePublicRaw(pj []byte) ([]*big.Int, error) {
+// ParsePublicRaw takes a json []byte and outputs the []*big.Int struct
+func ParsePublicRaw(pj []byte) ([]*big.Int, error) {
 	var pr []string
 	err := json.Unmarshal(pj, &pr)
 	if err != nil {
@@ -190,4 +191,27 @@ func proofRawToProof(pr ProofRaw) (*Proof, error) {
 	}
 
 	return &p, nil
+}
+
+var q = stringToBigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617")
+
+// Verify performs the Groth16 zkSnark verification
+func Verify(vk *Vk, proof *Proof, inputs []*big.Int) bool {
+	if len(inputs)+1 != len(vk.GammaABC) {
+		fmt.Println("len(inputs)+1 != len(vk.GammaABC)")
+		return false
+	}
+	vkX := new(bn256.G1).ScalarBaseMult(stringToBigInt("0"))
+	for i := 0; i < len(inputs); i++ {
+		// check input inside field
+		if inputs[0].Cmp(q) != -1 {
+			return false
+		}
+		vkX = new(bn256.G1).Add(vkX, new(bn256.G1).ScalarMult(vk.GammaABC[i+1], inputs[i]))
+	}
+	vkX = new(bn256.G1).Add(vkX, vk.GammaABC[0])
+
+	g1 := []*bn256.G1{proof.A, vk.Alpha.Neg(vk.Alpha), vkX.Neg(vkX), proof.C.Neg(proof.C)}
+	g2 := []*bn256.G2{proof.B, vk.Beta, vk.Gamma, vk.Delta}
+	return bn256.PairingCheck(g1, g2)
 }
