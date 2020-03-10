@@ -11,6 +11,16 @@ import (
 	bn256 "github.com/ethereum/go-ethereum/crypto/bn256/cloudflare"
 )
 
+var q *big.Int
+
+func init() {
+	var err error
+	q, err = stringToBigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617")
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Vk is the Verification Key data structure
 type Vk struct {
 	Alpha    *bn256.G1
@@ -93,7 +103,7 @@ func hexToG2(h [][]string) (*bn256.G2, error) {
 	return p, err
 }
 
-func stringToBigInt(s string) *big.Int {
+func stringToBigInt(s string) (*big.Int, error) {
 	base := 10
 	if bytes.HasPrefix([]byte(s), []byte("0x")) {
 		base = 16
@@ -101,9 +111,9 @@ func stringToBigInt(s string) *big.Int {
 	}
 	n, ok := new(big.Int).SetString(s, base)
 	if !ok {
-		panic(fmt.Errorf("Can not parse string to *big.Int: %s", s))
+		return nil, fmt.Errorf("Can not parse string to *big.Int: %s", s)
 	}
-	return n
+	return n, nil
 }
 
 // ParsePublicRaw takes a json []byte and outputs the []*big.Int struct
@@ -115,7 +125,11 @@ func ParsePublicRaw(pj []byte) ([]*big.Int, error) {
 	}
 	var public []*big.Int
 	for _, s := range pr {
-		public = append(public, stringToBigInt(s))
+		sb, err := stringToBigInt(s)
+		if err != nil {
+			return nil, err
+		}
+		public = append(public, sb)
 	}
 	return public, nil
 }
@@ -197,15 +211,13 @@ func proofRawToProof(pr ProofRaw) (*Proof, error) {
 	return &p, nil
 }
 
-var q = stringToBigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617")
-
 // Verify performs the Groth16 zkSnark verification
 func Verify(vk *Vk, proof *Proof, inputs []*big.Int) bool {
 	if len(inputs)+1 != len(vk.GammaABC) {
 		fmt.Println("len(inputs)+1 != len(vk.GammaABC)")
 		return false
 	}
-	vkX := new(bn256.G1).ScalarBaseMult(stringToBigInt("0"))
+	vkX := new(bn256.G1).ScalarBaseMult(big.NewInt(0))
 	for i := 0; i < len(inputs); i++ {
 		// check input inside field
 		if inputs[0].Cmp(q) != -1 {
