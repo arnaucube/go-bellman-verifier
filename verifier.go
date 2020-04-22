@@ -220,7 +220,7 @@ func Verify(vk *Vk, proof *Proof, inputs []*big.Int) bool {
 	vkX := new(bn256.G1).ScalarBaseMult(big.NewInt(0))
 	for i := 0; i < len(inputs); i++ {
 		// check input inside field
-		if inputs[0].Cmp(q) != -1 {
+		if inputs[i].Cmp(q) != -1 {
 			return false
 		}
 		vkX = new(bn256.G1).Add(vkX, new(bn256.G1).ScalarMult(vk.GammaABC[i+1], inputs[i]))
